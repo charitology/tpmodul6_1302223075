@@ -1,5 +1,6 @@
 ﻿// See https://aka.ms/new-console-template for more information
 using System;
+using System.Diagnostics.Contracts;
 
 public class SayaTubeVideo
 {
@@ -9,6 +10,8 @@ public class SayaTubeVideo
 
     public SayaTubeVideo (string title)
     {
+        Contract.Requires(string.IsNullOrEmpty(title));
+        Contract.Requires(title.Length <= 100);
         this.id = RandomId();
         this.title = title;
         this.playCount = 0;
@@ -22,7 +25,19 @@ public class SayaTubeVideo
 
     public void IncreasePlayCount (int count)
     {
-        playCount=+ count;
+        Contract.Requires (count > 0);
+        Contract.Requires(count <= 10000000);
+        try
+        {
+            checked
+            {
+                playCount = +count;
+            }
+        }
+        catch (OverflowException)
+        {
+            Console.WriteLine("Error: Penambahan menyebabkan overflow");
+        }
     }
 
     public void PrintVideoDetails()
@@ -37,9 +52,23 @@ class Program
 {
     static void Main(string[] args)
     {
-        SayaTubeVideo vid = new SayaTubeVideo("Tutorial Design by Contract - Dara Sheiba");
-        vid.IncreasePlayCount(200);
-        vid.PrintVideoDetails();
+        try
+        {
+            SayaTubeVideo vid1 = new SayaTubeVideo(new string('a', 200));
+            vid1.IncreasePlayCount(1000000000);
+            SayaTubeVideo vid2 = new SayaTubeVideo("Tutorial");
+            for (int i = 0; i < 1000000; i++)
+            {
+                vid2.IncreasePlayCount(1000000);
+            }
+
+            vid1.PrintVideoDetails();
+            vid2.PrintVideoDetails();
+        }
+        catch(Exception ex)
+        {
+            Console.WriteLine("ERROR");
+        }
     }
 }
 
